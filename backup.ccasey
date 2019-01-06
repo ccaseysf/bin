@@ -1,0 +1,102 @@
+#!/bin/bash -e
+
+skipExistsCheck=0
+if [[ "$1" != "" ]] ; then
+  if [[ "$1" == "--skip-exist-check" ]] ; then
+    skipExistsCheck=1
+  else
+    echo "Usage: $0 [--skip-exist-check]"
+    exit 1
+  fi
+fi
+
+function healthFail() {
+  echo "The health check failed. Run disk utility"
+  echo "and select First Aid on $1."
+  exit 1
+}
+
+function healthCheck() {
+  dname=$( mount | egrep $1 | awk '{ print $1 }' )
+
+  sudo fsck_hfs -fy -l ${dname?} || healthFail $1
+}
+
+function AssertMounted() {
+  for d in $* ; do
+    if [[ ! -d ${d?} ]] ; then
+      echo "ERROR: There is no backup drive mounted in: ${d?}"
+      exit 1
+    fi
+  done
+
+  # Sometimes stray directories are left behind in /Volumes
+  # even if no device is mounted there. Watch for that.
+  mounts=$( ls -d /Volumes/FileStore* | wc -l )
+  if [[ $mounts -gt 2 ]]; then
+    echo "ERROR: There are too many /Volumes/FileStore* mounts"
+    exit 1
+  fi
+  if [[ $mounts -lt 2 ]]; then
+    echo "ERROR: There are too few /Volumes/FileStore* mounts"
+    exit 1
+  fi
+}
+
+drive1=/Volumes/FileStore1
+echo ""
+drive2=/Volumes/FileStore2
+
+AssertMounted ${drive1?} ${drive2?}
+
+for dir in ccaseysf FilesToKeep FilesToReview ; do
+  if [ -d ${drive2?}/${dir?} ] ; then
+    if [[ ${skipExistsCheck?} -eq 1 ]] ; then
+      echo ""
+      echo "WARN: ${drive2?}/${dir?} exists. Syncing into it."
+      echo ""
+    else
+      echo "${drive2?}/${dir?} exists. Please roll it before backup."
+      exit 1
+    fi
+  fi
+done
+
+healthCheck ${drive1?}
+echo ""
+healthCheck ${drive2?}
+echo ""
+
+echo ""
+echo "Backing up ccaseysf"
+echo ""
+
+src=/Users/ccaseysf
+dest=${drive1?}/ccaseysf
+mkdir -p ${dest?}
+rsync -a --delete --itemize-changes ${src?}/ ${dest?}
+
+for dir in ccaseysf FilesToKeep FilesToReview ; do
+  src="${drive1?}/${dir?}"
+  dest="${drive2?}/${dir?}"
+
+  mkdir -p ${dest?}
+
+  echo ""
+  echo "rsync ${src} to ${dest}"
+  echo ""
+  rsync -a --delete --itemize-changes ${src?}/ ${dest?}
+done
+
+echo ""
+echo "Verifying all files have been rsync'd ..."
+echo ""
+
+for dir in ccaseysf FilesToKeep FilesToReview ; do
+  src="${drive1?}/${dir?}"
+  dest="${drive2?}/${dir?}"
+
+  mkdir -p ${dest?}
+
+  rsync --dry-run -a --delete --itemize-changes ${src?}/ ${dest?}
+done

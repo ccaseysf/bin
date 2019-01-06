@@ -1,0 +1,21 @@
+#!/bin/bash -e -x
+
+# Instructions for installing NTFS drivers that
+# can mount the external drive writable:
+# https://www.howtogeek.com/236055/how-to-write-to-ntfs-drives-on-a-mac/
+
+if [[ $EUID -ne 0 ]]; then
+   echo "This script must be run as root (use sudo)" 
+   exit 1
+fi
+
+umount /dev/disk2s1 || true
+
+/usr/local/bin/ntfs-3g /dev/disk2s1 /Volumes/NTFS -olocal -oallow_other || true
+
+if [[ ! -d /Volumes/NTFS ]]; then
+   echo "Could not find /Volumes/NTFS. Something is wrong."
+   exit 1
+fi
+
+rsync -a --delete --progress /Users/ccaseysf/ /Volumes/NTFS/ccaseysf
