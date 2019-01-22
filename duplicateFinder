@@ -1,0 +1,56 @@
+#!/bin/bash -u
+
+GREEN='\033[01;32m'
+RED='\033[1;31m'
+NOCOLOR='\033[0m'
+
+REFDIR=/Volumes/FileStore1/FilesToKeep/PhotoLibrary
+SUMFILE=/var/tmp/md5Sums.txt
+
+function usage() {
+	echo -e "${RED}$@${NOCOLOR}"
+	echo
+	echo "Usage: $( basename $0 ) dirToScan"
+	echo
+	echo "Builds an md5 sum file from files in the reference directory:"
+	echo "${REFDIR}"
+	echo "Then scans the 'dirToScan' directory for duplicates."
+	exit 1
+}
+
+[ $# -eq 1 ] || usage "ERROR: You must specify the directory to scan."
+DIRTOSCAN=$1
+
+[ -d ${REFDIR} ] || usage "ERROR: The reference dir is not available: ${REFDIR}"
+
+echo -en "${GREEN}Building reference file for ${REFDIR} ..."
+find ${REFDIR} -type f -exec md5 -r \{\} \; > ${SUMFILE}
+echo -e " done ${SUMFILE} ${NOCOLOR}"
+echo
+
+echo -e "${GREEN}Checking for duplicates in ${REFDIR} ... ${NOCOLOR}"
+echo
+
+for s in $( awk '{ print $1 }' /var/tmp/md5Sums.txt | sort | uniq -c | egrep -v "^ *1 " | awk '{ print $2 }' ) ; do
+	egrep ${s} ${SUMFILE}
+	echo
+done
+
+echo -e "${GREEN}Checking for duplicates in ${DIRTOSCAN} ... ${NOCOLOR}"
+echo
+
+for f in $( find ${DIRTOSCAN} -type f | sed "s/ /:/g" ) ; do
+	# Unpack the filename (put the spaces back).
+	FILE=${f//:/ }
+
+	# Find its md5 sum.
+	SUM=$( md5 -r "${FILE}" | awk '{ print $1 }' )
+
+	# Is this md5 sum in the reference file?
+	egrep --quiet ${SUM} ${SUMFILE}
+	if [[ $? -eq 0 ]] ; then
+		echo "${FILE}           is a duplicate of ---v"
+		egrep ${SUM} ${SUMFILE}
+		echo
+	fi
+done
