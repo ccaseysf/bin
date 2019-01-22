@@ -43,6 +43,12 @@ for f in $( find ${DIRTOSCAN} -type f | sed "s/ /:/g" ) ; do
 	# Unpack the filename (put the spaces back).
 	FILE=${f//:/ }
 
+	# Skip these files.
+	BASENAME=$( basename ${FILE} )
+	if [[ "${BASENAME}" == ".DS_Store" ]] ; then
+		continue
+	fi
+
 	# Find its md5 sum.
 	SUM=$( md5 -r "${FILE}" | awk '{ print $1 }' )
 
