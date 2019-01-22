@@ -5,10 +5,14 @@ if [[ "$1" != "" ]] ; then
   if [[ "$1" == "--skip-exist-check" ]] ; then
     skipExistsCheck=1
   else
-    echo "Usage: $0 [--skip-exist-check]"
-    exit 1
+    usage
   fi
 fi
+
+function usage() {
+  echo "Usage: $0 [--skip-exist-check]"
+  exit 1
+}
 
 function healthFail() {
   echo "The health check failed. Run disk utility"
@@ -57,7 +61,7 @@ for dir in ccaseysf FilesToKeep ; do
       echo ""
     else
       echo "${drive2?}/${dir?} exists. Please roll it before backup."
-      exit 1
+      usage
     fi
   fi
 done
