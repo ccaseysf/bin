@@ -10,27 +10,27 @@ DELETEDIR=/Volumes/FileStore1/FilesToDeleteEndOfProject/PhotoFiles
 SUMFILE=/var/tmp/md5Sums.txt
 
 function usage() {
-	echo -e "${RED}$@${NOCOLOR}"
-	echo
-	echo "Usage: $( basename $0 )"
-	echo
-	echo "Builds an md5 sum file from files in the reference directory:"
-	echo "${REFDIR}"
-	echo "Then scans for duplicates in:"
-	echo "${DIRTOSCAN}"
-	exit 1
+  echo -e "${RED}$@${NOCOLOR}"
+  echo
+  echo "Usage: $( basename $0 )"
+  echo
+  echo "Builds an md5 sum file from files in the reference directory:"
+  echo "${REFDIR}"
+  echo "Then scans for duplicates in:"
+  echo "${DIRTOSCAN}"
+  exit 1
 }
 
 function extensions() {
-	DIR="$1"
-	if [[ "${DIR}" == "" ]] ; then
-		echo "ERROR: extensions() requires a parameter."
-		exit 1
-	fi
-	echo -e "${GREEN}File extensions in ${DIR} ... ${NOCOLOR}"
-	echo
-	find ${DIR} -type f | sed "s/^.*[.]/./1" | sort | uniq -c | sort -n
-	echo
+  DIR="$1"
+  if [[ "${DIR}" == "" ]] ; then
+    echo "ERROR: extensions() requires a parameter."
+    exit 1
+  fi
+  echo -e "${GREEN}File extensions in ${DIR} ... ${NOCOLOR}"
+  echo
+  find ${DIR} -type f | sed "s/^.*[.]/./1" | sort | uniq -c | sort -n
+  echo
 }
 
 [ -d ${REFDIR} ] || usage "ERROR: The reference dir is not available: ${REFDIR}"
@@ -45,8 +45,8 @@ echo -e "${GREEN}Checking for duplicates in ${REFDIR} ... ${NOCOLOR}"
 echo
 
 for s in $( awk '{ print $1 }' /var/tmp/md5Sums.txt | sort | uniq -c | egrep -v "^ *1 " | awk '{ print $2 }' ) ; do
-	egrep ${s} ${SUMFILE}
-	echo
+  egrep ${s} ${SUMFILE}
+  echo
 done
 
 extensions "${REFDIR}"
@@ -56,30 +56,30 @@ echo -e "${GREEN}Checking for duplicates in ${DIRTOSCAN} ... ${NOCOLOR}"
 echo
 
 for f in $( find ${DIRTOSCAN} -type f | sed "s/ /:/g" ) ; do
-	# Unpack the filename (put the spaces back).
-	FILE=${f//:/ }
+  # Unpack the filename (put the spaces back).
+  FILE=${f//:/ }
 
-	# Skip these files.
-	BASENAME=$( basename "${FILE}" )
-	if [[ "${BASENAME}" == ".DS_Store" ]] ; then
-		continue
-	fi
+  # Skip these files.
+  BASENAME=$( basename "${FILE}" )
+  if [[ "${BASENAME}" == ".DS_Store" ]] ; then
+    continue
+  fi
 
-	# Find its md5 sum.
-	SUM=$( md5 -r "${FILE}" | awk '{ print $1 }' )
+  # Find its md5 sum.
+  SUM=$( md5 -r "${FILE}" | awk '{ print $1 }' )
 
-	# Is this md5 sum in the reference file?
-	egrep --quiet ${SUM} ${SUMFILE}
-	if [[ $? -eq 0 ]] ; then
-		echo "${FILE}           is a duplicate of ---v"
-		egrep ${SUM} ${SUMFILE}
+  # Is this md5 sum in the reference file?
+  egrep --quiet ${SUM} ${SUMFILE}
+  if [[ $? -eq 0 ]] ; then
+    echo "${FILE}           is a duplicate of ---v"
+    egrep ${SUM} ${SUMFILE}
 
-		DEST_FILE=${FILE/FilesToKeep/FilesToDeleteEndOfProject}
-		echo "Archiving ${FILE} to ${DEST_FILE}"
-		DEST_DIR=$( dirname "${DEST_FILE}" )
-		mkdir -p "${DEST_DIR}"
-		mv "${FILE}" "${DEST_FILE}"
+    DEST_FILE=${FILE/FilesToKeep/FilesToDeleteEndOfProject}
+    echo "Archiving ${FILE} to ${DEST_FILE}"
+    DEST_DIR=$( dirname "${DEST_FILE}" )
+    mkdir -p "${DEST_DIR}"
+    mv "${FILE}" "${DEST_FILE}"
 
-		echo
-	fi
+    echo
+  fi
 done
