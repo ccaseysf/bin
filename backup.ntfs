@@ -1,4 +1,5 @@
-#!/bin/bash -e -x
+#!/usr/local/bin/bash -e -x
+
 
 # Instructions for installing NTFS drivers that
 # can mount the external drive writable:

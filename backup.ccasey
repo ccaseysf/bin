@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/usr/local/bin/bash -e
 
 skipExistsCheck=0
 if [[ "$1" != "" ]] ; then
