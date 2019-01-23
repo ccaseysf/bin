@@ -1,2 +1,2 @@
 # bin
-shell script for my Mac
+shell scripts for my Mac
