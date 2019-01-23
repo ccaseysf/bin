@@ -21,6 +21,18 @@ function usage() {
 	exit 1
 }
 
+function extensions() {
+	DIR="$1"
+	if [[ "${DIR}" == "" ]] ; then
+		echo "ERROR: extensions() requires a parameter."
+		exit 1
+	fi
+	echo -e "${GREEN}File extensions in ${DIR} ... ${NOCOLOR}"
+	echo
+	find ${DIR} -type f | sed "s/^.*[.]/./1" | sort | uniq -c | sort -n
+	echo
+}
+
 [ -d ${REFDIR} ] || usage "ERROR: The reference dir is not available: ${REFDIR}"
 [ -d ${DIRTOSCAN} ] || usage "ERROR: The scan dir is not available: ${DIRTOSCAN}"
 
@@ -36,6 +48,9 @@ for s in $( awk '{ print $1 }' /var/tmp/md5Sums.txt | sort | uniq -c | egrep -v 
 	egrep ${s} ${SUMFILE}
 	echo
 done
+
+extensions "${REFDIR}"
+extensions "${DIRTOSCAN}"
 
 echo -e "${GREEN}Checking for duplicates in ${DIRTOSCAN} ... ${NOCOLOR}"
 echo
