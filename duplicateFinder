@@ -1,27 +1,28 @@
-#!/bin/bash -u
+#!/usr/local/bin/bash -u
 
 GREEN='\033[01;32m'
 RED='\033[1;31m'
 NOCOLOR='\033[0m'
 
 REFDIR=/Volumes/FileStore1/FilesToKeep/PhotoLibrary
+DIRTOSCAN=/Volumes/FileStore1/FilesToKeep/PhotoFiles
+DELETEDIR=/Volumes/FileStore1/FilesToDeleteEndOfProject/PhotoFiles
 SUMFILE=/var/tmp/md5Sums.txt
 
 function usage() {
 	echo -e "${RED}$@${NOCOLOR}"
 	echo
-	echo "Usage: $( basename $0 ) dirToScan"
+	echo "Usage: $( basename $0 )"
 	echo
 	echo "Builds an md5 sum file from files in the reference directory:"
 	echo "${REFDIR}"
-	echo "Then scans the 'dirToScan' directory for duplicates."
+	echo "Then scans for duplicates in:"
+	echo "${DIRTOSCAN}"
 	exit 1
 }
 
-[ $# -eq 1 ] || usage "ERROR: You must specify the directory to scan."
-DIRTOSCAN=$1
-
 [ -d ${REFDIR} ] || usage "ERROR: The reference dir is not available: ${REFDIR}"
+[ -d ${DIRTOSCAN} ] || usage "ERROR: The scan dir is not available: ${DIRTOSCAN}"
 
 echo -en "${GREEN}Building reference file for ${REFDIR} ..."
 find ${REFDIR} -type f -exec md5 -r \{\} \; > ${SUMFILE}
@@ -44,7 +45,7 @@ for f in $( find ${DIRTOSCAN} -type f | sed "s/ /:/g" ) ; do
 	FILE=${f//:/ }
 
 	# Skip these files.
-	BASENAME=$( basename ${FILE} )
+	BASENAME=$( basename "${FILE}" )
 	if [[ "${BASENAME}" == ".DS_Store" ]] ; then
 		continue
 	fi
@@ -57,6 +58,13 @@ for f in $( find ${DIRTOSCAN} -type f | sed "s/ /:/g" ) ; do
 	if [[ $? -eq 0 ]] ; then
 		echo "${FILE}           is a duplicate of ---v"
 		egrep ${SUM} ${SUMFILE}
+
+		DEST_FILE=${FILE/FilesToKeep/FilesToDeleteEndOfProject}
+		echo "Archiving ${FILE} to ${DEST_FILE}"
+		DEST_DIR=$( dirname "${DEST_FILE}" )
+		mkdir -p "${DEST_DIR}"
+		mv "${FILE}" "${DEST_FILE}"
+
 		echo
 	fi
 done
