@@ -21,6 +21,14 @@ function usage() {
   exit 1
 }
 
+function getDirStats() {
+  DIR="$1"
+  SIZE=$( du -sh ${DIR} | awk '{ print $1 }' )
+  DIRS=$( find ${DIR} -type d | wc -l )
+  FILES=$( find ${DIR} -type f | wc -l )
+  echo "Size: ${SIZE} Dirs: ${DIRS} Files: ${FILES}"
+}
+
 function extensions() {
   DIR="$1"
   if [[ "${DIR}" == "" ]] ; then
@@ -70,9 +78,10 @@ done
 extensionsAndSizes "${REFDIR}"
 extensionsAndSizes "${DIRTOSCAN}"
 
-echo -e "${GREEN}Checking for duplicates in ${DIRTOSCAN} ... ${NOCOLOR}"
+echo -e "${GREEN}Archiving duplicates in ${DIRTOSCAN} ... ${NOCOLOR}"
 echo
 
+before=$( getDirStats ${DIRTOSCAN} )
 for f in $( find ${DIRTOSCAN} -type f | sed "s/ /:/g" ) ; do
   # Unpack the filename (put the spaces back).
   FILE=${f//:/ }
@@ -93,7 +102,7 @@ for f in $( find ${DIRTOSCAN} -type f | sed "s/ /:/g" ) ; do
     egrep ${SUM} ${SUMFILE}
 
     DEST_FILE=${FILE/FilesToKeep/FilesToDeleteEndOfProject}
-    echo "Archiving ${FILE} to ${DEST_FILE}"
+    echo "Archiving '${DEST_FILE}' <- '${FILE}'"
     DEST_DIR=$( dirname "${DEST_FILE}" )
     mkdir -p "${DEST_DIR}"
     mv "${FILE}" "${DEST_FILE}"
@@ -101,3 +110,13 @@ for f in $( find ${DIRTOSCAN} -type f | sed "s/ /:/g" ) ; do
     echo
   fi
 done
+
+echo -e "${GREEN}Removing empty directories from ${DIRTOSCAN} ... ${NOCOLOR}"
+echo
+find ${DIRTOSCAN} -type f -name ".DS_Store" -exec rm \{\} \;
+find ${DIRTOSCAN} -type d -exec rmdir \{\} \;
+
+after=$( getDirStats ${DIRTOSCAN} )
+echo "Before: ${before}"
+echo "After:  ${after}"
+
