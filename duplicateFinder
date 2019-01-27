@@ -67,7 +67,7 @@ for s in $( awk '{ print $1 }' /var/tmp/md5Sums.txt | sort | uniq -c | egrep -v 
   echo
 done
 
-extensionsAndSizes "${REFDIR}"
+extensions "${REFDIR}"
 extensionsAndSizes "${DIRTOSCAN}"
 
 echo -e "${GREEN}Checking for duplicates in ${DIRTOSCAN} ... ${NOCOLOR}"
