@@ -1,4 +1,4 @@
-#!/usr/local/bin/bash -u
+#!/usr/local/bin/bash -e
 
 GREEN='\033[01;32m'
 RED='\033[1;31m'
@@ -96,10 +96,10 @@ for f in $( find ${DIRTOSCAN} -type f | sed "s/ /:/g" ) ; do
   SUM=$( md5 -r "${FILE}" | awk '{ print $1 }' )
 
   # Is this md5 sum in the reference file?
-  egrep --quiet ${SUM} ${SUMFILE}
-  if [[ $? -eq 0 ]] ; then
+  DUPLICATE=$( egrep ${SUM} ${SUMFILE} || true )
+  if [ ! -z "${DUPLICATE}" ] ; then
     echo "${FILE}           is a duplicate of ---v"
-    egrep ${SUM} ${SUMFILE}
+    echo ${DUPLICATE}
 
     DEST_FILE=${FILE/FilesToKeep/FilesToDeleteEndOfProject}
     echo "Archiving '${DEST_FILE}' <- '${FILE}'"
@@ -114,7 +114,7 @@ done
 echo -e "${GREEN}Removing empty directories from ${DIRTOSCAN} ... ${NOCOLOR}"
 echo
 find ${DIRTOSCAN} -type f -name ".DS_Store" -exec rm \{\} \;
-find ${DIRTOSCAN} -type d -exec rmdir \{\} \;
+find ${DIRTOSCAN} -type d -exec rmdir \{\} \; 2>&- || true
 
 after=$( getDirStats ${DIRTOSCAN} )
 echo "Before: ${before}"
