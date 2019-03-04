@@ -47,6 +47,8 @@ function AssertMounted() {
   fi
 }
 
+ROOT=$( dirname $0 )
+
 drive1=/Volumes/FileStore1
 echo ""
 drive2=/Volumes/FileStore2
@@ -78,7 +80,7 @@ echo ""
 src=/Users/ccaseysf
 dest=${drive1?}/ccaseysf
 mkdir -p ${dest?}
-rsync -a --delete --itemize-changes ${src?}/ ${dest?}
+rsync -a --delete --itemize-changes --exclude-from=${ROOT}/backup.exclude ${src?}/ ${dest?}
 
 for dir in ccaseysf FilesToKeep ; do
   src="${drive1?}/${dir?}"
