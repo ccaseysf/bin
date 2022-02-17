@@ -1,9 +1,10 @@
+.DS_Store
+.Trash/
+.atom/
 .bash_sessions/
-dev/options/web-request-cache/
+.zsh_sessions/
 Dropbox/.dropbox.cache/
-go/bin
-go/pkg
-go/src
+Library/Application Support/discord/Cache/
 Library/Application?Support/Active?Trader?Pro/
 Library/Application?Support/Battle.net/
 Library/Application?Support/Code/Cache/
@@ -15,9 +16,15 @@ Library/Calendars/
 Library/Containers/
 Library/Developer/CoreSimulator/
 Library/Google/
-Library/iTunes/iPhone Software Updates/
+Library/Group Containers/group.com.apple.secure-control-center-preferences
 Library/Logs/
 Library/Metadata/CoreSpotlight/
+Library/News/
 Library/com.apple.icloud.searchpartyd/
-Users/ccaseysf/go/
+Library/iTunes/iPhone Software Updates/
 Users/ccaseysf/dev/options/web-request-cache/
+Users/ccaseysf/go/
+dev/options/web-request-cache/
+go/bin
+go/pkg
+go/src
