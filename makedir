@@ -1,0 +1,9 @@
+#!/usr/local/bin/bash -e
+
+FILE="$1"
+
+    DEST_FILE=${FILE/FilesToKeep/FilesToDeleteEndOfProject}
+    echo "Archiving '${DEST_FILE}' <- '${FILE}'"
+    DEST_DIR=$( dirname "${DEST_FILE}" )
+    mkdir -p "${DEST_DIR}"
+    mv "${FILE}" "${DEST_FILE}"
