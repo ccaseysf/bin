@@ -1,0 +1,3 @@
+#!/bin/zsh
+
+sudo fsck_apfs -nl /dev/rdisk3s2
